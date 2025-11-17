@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Mapped, mapped_column
-from src.config.database.db_connect import Base
+from config.database.db_connect import Base
 
 
 class FilmModel(Base):
@@ -9,4 +9,4 @@ class FilmModel(Base):
     title:Mapped[str] = mapped_column(nullable=False)
     director:Mapped[str] = mapped_column(nullable=False)
     year:Mapped[int] = mapped_column(nullable=False)
-    deleted:Mapped[bool] = mapped_column(nullable=False, default=False)
+    is_deleted:Mapped[bool] = mapped_column(nullable=False, default=False)
