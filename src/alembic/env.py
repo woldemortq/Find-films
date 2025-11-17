@@ -8,7 +8,7 @@ import sys
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, BASE_DIR)
 
-from infrastructure.models import FilmModel  # noqa
+from domain.models import FilmModel  # noqa
 from config.database.db_connect import Base, DATABASE_URL
 
 
