@@ -5,8 +5,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from config.database.db_connect import get_db
-from infrastructure.models.FilmModel import FilmModel
-from infrastructure.schemas.schemas import FilmSchema
+from domain.models.FilmModel import FilmModel
+from schemas.schemas import FilmSchema
 
 app = FastAPI()
 
