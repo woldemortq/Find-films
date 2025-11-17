@@ -4,9 +4,9 @@ from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.config.database.db_connect import get_db
-from src.infrastructure.models.FilmModel import FilmModel
-from src.infrastructure.schemas.schemas import FilmSchema
+from config.database.db_connect import get_db
+from infrastructure.models.FilmModel import FilmModel
+from infrastructure.schemas.schemas import FilmSchema
 
 app = FastAPI()
 
@@ -93,13 +93,13 @@ Depends(get_db)):
 async def delete_films(film_id: int, db: AsyncSession =
 Depends(get_db)):
     result_delete = await db.execute(select(FilmModel).where(
-        FilmModel.id == film_id, FilmModel.deleted == False))
+        FilmModel.id == film_id, FilmModel.is_deleted == False))
     films_deleted = result_delete.scalar_one_or_none()
 
     if not films_deleted:
         raise HTTPException(status_code=404, detail=f"Film no. {film_id} not found")
 
-    films_deleted.deleted = True
+    films_deleted.is_deleted = True
     await db.commit()
     return {"msg": f"Film no. {film_id} deleted successfully"}
 
