@@ -1,38 +1,58 @@
-import os
-
-from fastapi import APIRouter, HTTPException, Response, Depends
-from authx import AuthX, AuthXConfig
-
-from schemas.login_schema import UserLoginSchema
+import bcrypt
+from fastapi import APIRouter, HTTPException, Depends
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from config.database.db_connect import get_db
+from domain.models import UserModel
+from services.auth_services import register_user, login_user
+from core.security import decode_access_token
 
 router = APIRouter(prefix="/auth", tags = ["Регистрация и авторизация 🔐"])
 
-config = AuthXConfig()
-config.JWT_SECRET_KEY = os.getenv("SECRET_KEY")
-config.JWT_ACCESS_COOKIE_NAME = "my_access_token"
-config.JWT_TOKEN_LOCATION = ["cookies"]
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
-security = AuthX(config=config)
+@router.post("/register")
+async def register(username: str, password: str, db: AsyncSession =
+Depends(get_db)):
+    result = await db.execute(select(UserModel).where(UserModel.username == username))
+    existing_user = result.scalars().first()
+    if existing_user:
+        raise HTTPException(status_code=404, detail="User already exists")
+    hashed_password = bcrypt.hash(password)
 
+    new_user = UserModel(username=username, password=hashed_password)
+    db.add(new_user)
+    await db.commit()
+    await db.refresh(new_user)
 
-
-@router.post("/login",
-    summary="Авторизация")
-async def login(creds: UserLoginSchema, response: Response):
-    if creds.username == "test" and creds.password == "test":
-        token = security.create_access_token(uid="12345")
-        response.set_cookie(config.JWT_ACCESS_COOKIE_NAME, token)
-        return {"access_token": token}
-    raise HTTPException(status_code=401, detail="Invalid login")
-@router.post("/registration",
-    summary="Регистрация",
-)
-async def registration():
-    pass
-
-@router.get("/protected", dependencies=[Depends(security.access_token_required)])
-async def protected():
-    return {"data": "TOP SECRET"}
+    return {"message": "User registered successfully", "user_id":
+        new_user.id}
 
 
+@router.post("/login")
+async def login(form_data: OAuth2PasswordRequestForm = Depends(),
+                db: AsyncSession = Depends(get_db)):
 
+    result = await db.execute(select(UserModel).where(UserModel.username
+                                                      ==
+                                                      form_data.username))
+    existing_user = result.scalars().first()
+    if not existing_user:
+        raise HTTPException(status_code=404, detail="User not "
+                                                    "found")
+    if not bcrypt.verify(form_data.password, existing_user.password_hash):
+        raise HTTPException(status_code=401, detail="Invalid Credentials")
+    token = login_user(form_data.username, form_data.password, )
+    if not token:
+        raise HTTPException(401, "Invalid credentials")
+    return {"access_token": token, "token_type": "bearer"}
+
+async def get_current_user(token: str = Depends(oauth2_scheme)):
+    payload = decode_access_token(token)
+    return payload["user_id"]
+
+
+@router.get("/protected")
+async def protected(user_id: int = Depends(get_current_user)):
+    return {"message": "TOP SECRET", "user_id": user_id}
