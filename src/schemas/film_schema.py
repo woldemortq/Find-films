@@ -1,9 +1,13 @@
 from pydantic import BaseModel, Field
 
-
 class FilmSchema(BaseModel):
     title: str
-    director: str
-    year: int| None = Field(ge=1800)
-    is_deleted: bool = Field(default=False)
+    director: str | None
+    year: int | None
+    is_deleted: bool
+    type: str
+
+    class Config:
+        from_attributes = True
+
 
