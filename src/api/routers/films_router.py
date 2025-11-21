@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from config.database.db_connect import get_db
 from domain.models.FilmModel import FilmModel
-from schemas.schemas import FilmSchema
+from schemas.film_schema import FilmSchema
 
 router = APIRouter(prefix="/films", tags=["Фильмы и сериалы 🎥"])
 
