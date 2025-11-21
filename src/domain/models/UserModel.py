@@ -13,5 +13,7 @@ class UserModel(Base):
     password_hash: Mapped[str] = mapped_column(String, nullable=False)
     created_at: Mapped[TIMESTAMP] = mapped_column(TIMESTAMP, server_default=func.now(), nullable=False)
 
-    films: Mapped[list["FilmModel"]] = relationship("FilmModel", back_populates="owner", cascade="all, delete-orphan")
-    favorites: Mapped[list["FavoriteModel"]] = relationship("FavoriteModel", back_populates="user", cascade="all, delete-orphan")
+    # Связь через таблицу избранных (Many-to-Many с FilmModel через FavoriteModel)
+    favorites: Mapped[list["FavoriteModel"]] = relationship(
+        "FavoriteModel", back_populates="user", cascade="all, delete-orphan"
+    )

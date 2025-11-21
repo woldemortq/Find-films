@@ -12,9 +12,11 @@ class FilmModel(Base):
     director: Mapped[str] = mapped_column(String, nullable=True)
     year: Mapped[int] = mapped_column(Integer, nullable=True)
     is_deleted: Mapped[bool] = mapped_column(Boolean, default=False)
-    type: Mapped[str] = mapped_column(String, nullable=False)
+    type: Mapped[str] = mapped_column(String, nullable=False,
+                                      default='Фильм')
 
-    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
-    owner: Mapped["UserModel"] = relationship("UserModel", back_populates="films")
 
-    favorites: Mapped[list["FavoriteModel"]] = relationship("FavoriteModel", back_populates="film", cascade="all, delete-orphan")
+    favorites: Mapped[list["FavoriteModel"]] = relationship(
+        "FavoriteModel", back_populates="film",
+        cascade="all, delete-orphan"
+    )
